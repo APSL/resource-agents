@@ -425,22 +425,14 @@ OCF_RA_DIR="${OCF_ROOT_DIR}/resource.d/"
 AC_DEFINE_UNQUOTED(OCF_RA_DIR,"$OCF_RA_DIR", Location for OCF RAs)
 AC_SUBST(OCF_RA_DIR)
 
-if test "${prefix}" = "/usr"; then
- OCF_RA_DIR_PREFIX="$OCF_RA_DIR"
-else
- OCF_RA_DIR_PREFIX="${prefix}/$OCF_RA_DIR"
-fi
+OCF_RA_DIR_PREFIX="$OCF_RA_DIR"
 AC_SUBST(OCF_RA_DIR_PREFIX)
 
 OCF_LIB_DIR="${OCF_ROOT_DIR}/lib/"
 AC_DEFINE_UNQUOTED(OCF_LIB_DIR,"$OCF_LIB_DIR", Location for shared code for OCF RAs)
 AC_SUBST(OCF_LIB_DIR)
 
-if test "${prefix}" = "/usr"; then
- OCF_LIB_DIR_PREFIX="$OCF_LIB_DIR"
-else
- OCF_LIB_DIR_PREFIX="${prefix}/$OCF_LIB_DIR"
-fi
+OCF_LIB_DIR_PREFIX="$OCF_LIB_DIR"
 AC_SUBST(OCF_LIB_DIR_PREFIX)
 
 dnl ===============================================
