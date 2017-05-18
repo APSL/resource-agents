@@ -161,9 +161,7 @@ The action (block/unblock) to be done on the protocol::portno.
 </parameter>
 
 <parameter name="reset_local_on_unblock_stop" unique="0" required="0">
-<content type="boolean" default="${OCF_RESKEY_reset_local_on_unblock_stop_default}" />
-<shortdesc lang="en">(try to) reset server TCP sessions when unblock stops</shortdesc>
-<longdesc>
+<longdesc lang="en">
 If for some reason the long lived server side TCP sessions won't be cleaned up
 by a reconfiguration/flush/stop of whatever services this portblock protects,
 they would linger in the connection table, even after the IP is gone
@@ -178,6 +176,8 @@ by injecting a temporary iptables rule to TCP-reset outgoing packets from the
 blocked ports, and additionally tickle them locally,
 just before it starts to DROP incoming packets on "unblock stop".
 </longdesc>
+<shortdesc lang="en">(try to) reset server TCP sessions when unblock stops</shortdesc>
+<content type="boolean" default="${OCF_RESKEY_reset_local_on_unblock_stop_default}" />
 </parameter>
 
 <parameter name="ip" unique="0" required="0">
@@ -242,7 +242,7 @@ active_grep_pat()
 chain_isactive()
 {
   PAT=`active_grep_pat "$1" "$2" "$3"`
-  $IPTABLES -n -L INPUT | grep "$PAT" >/dev/null
+  $IPTABLES $wait -n -L INPUT | grep "$PAT" >/dev/null
 }
 
 save_tcp_connections()
@@ -370,13 +370,13 @@ IptablesBLOCK()
     : OK -- chain already active
   else
     if $try_reset ; then
-      $IPTABLES -I OUTPUT -p "$1" -s "$3" -m multiport --sports "$2" -j REJECT --reject-with tcp-reset
+      $IPTABLES $wait -I OUTPUT -p "$1" -s "$3" -m multiport --sports "$2" -j REJECT --reject-with tcp-reset
       tickle_local
     fi
-    $IPTABLES -I INPUT -p "$1" -d "$3" -m multiport --dports "$2" -j DROP
+    $IPTABLES $wait -I INPUT -p "$1" -d "$3" -m multiport --dports "$2" -j DROP
     rc=$?
     if $try_reset ; then
-      $IPTABLES -D OUTPUT -p "$1" -s "$3" -m multiport --sports "$2" -j REJECT --reject-with tcp-reset
+      $IPTABLES $wait -D OUTPUT -p "$1" -s "$3" -m multiport --sports "$2" -j REJECT --reject-with tcp-reset
     fi
   fi
 
@@ -389,7 +389,7 @@ IptablesUNBLOCK()
   if
     chain_isactive "$1" "$2" "$3"
   then
-    $IPTABLES -D INPUT -p "$1" -d "$3" -m multiport --dports "$2" -j DROP
+    $IPTABLES $wait -D INPUT -p "$1" -d "$3" -m multiport --dports "$2" -j DROP
   else
     : Chain Not active
   fi
@@ -525,6 +525,15 @@ if [ -z "$OCF_RESKEY_action" ]; then
   ocf_log err "Please set OCF_RESKEY_action"
   exit $OCF_ERR_CONFIGURED
 fi 
+
+# iptables v1.4.20+ is required to use -w (wait)
+version=$(iptables -V | awk -F ' v' '{print $NF}')
+ocf_version_cmp "$version" "1.4.19.1"
+if [ "$?" -eq "2" ]; then
+    wait="-w"
+else
+    wait=""
+fi
 
 protocol=$OCF_RESKEY_protocol
 portno=$OCF_RESKEY_portno

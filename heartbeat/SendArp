@@ -9,7 +9,7 @@
 #       Based on IPaddr2: Copyright (C) 2003 Tuomo Soini <tis@foobar.fi>
 #
 # 	License:      GNU General Public License (GPL)
-# 	Support:      linux-ha@lists.linux-ha.org
+# 	Support:      users@clusterlabs.org
 #
 #	This script send out gratuitous Arp for an IP address
 #
@@ -72,7 +72,7 @@ sendarp_meta_data() {
 	cat <<END
 <?xml version="1.0"?>
 <!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
-<resource-agent name="SendArp" version="1.0">
+<resource-agent name="SendArp">
 <version>1.0</version>
 
 <longdesc lang="en">
